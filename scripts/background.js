@@ -119,7 +119,7 @@ async function checkAndCreateRepo(owner, repoName) {
         method: 'POST',
         body: JSON.stringify({
           name: repoName,
-          description: 'LeetCode solutions auto-synced by LeetCode GitHub Sync Chrome Extension',
+          description: 'LeetCode & GFG solutions auto-synced by GitHub Sync Chrome Extension',
           private: true,
           auto_init: true
         })
@@ -172,17 +172,21 @@ async function pushFile(owner, repoName, path, branch, content, commitMessage) {
 
 function generateProblemReadme(problem, submission, solutions) {
   const diffColor = problem.difficulty === 'Easy' ? 'brightgreen' : (problem.difficulty === 'Medium' ? 'orange' : 'red');
-  const tags = problem.topicTags.map(t => `\`${t.name}\``).join(' ');
+  const tags = (problem.topicTags || []).map(t => `\`${t.name}\``).join(' ');
   const ts = parseInt(submission.timestamp);
-  const dateStr = isNaN(ts) ? submission.timestamp : new Date(ts * 1000).toUTCString();
+  const dateStr = isNaN(ts) ? (submission.timestamp || 'N/A') : new Date(ts * 1000).toUTCString();
+  const source = problem.source || 'LeetCode';
+  const problemLabel = source === 'GFG' ? problem.title : `${problem.questionId}. ${problem.title}`;
+
   
   let solutionsList = '';
   solutions.forEach(s => {
     solutionsList += `- [${s.langDisplay}](${s.fileName})\n`;
   });
 
-  return `# [${problem.questionId}. ${problem.title}](${submission.problemUrl})
+  return `# [${problemLabel}](${submission.problemUrl})
 
+![Source](https://img.shields.io/badge/Source-${source}-blue)
 ![Difficulty](https://img.shields.io/badge/Difficulty-${problem.difficulty}-${diffColor})
 
 ## Tags
@@ -225,8 +229,15 @@ async function handleSubmissionSync(problem, submission) {
     await checkAndCreateRepo(owner, repoName);
   }
 
-  const problemNumberStr = String(problem.questionId).padStart(4, '0');
-  const folderPath = `${problem.difficulty}/${problemNumberStr}-${problem.titleSlug}`;
+  // Build folder path: GFG uses slug, LeetCode uses padded numeric ID
+  const isGfg = problem.source === 'GFG';
+  let folderPath;
+  if (isGfg) {
+    folderPath = `GFG/${problem.difficulty}/${problem.titleSlug}`;
+  } else {
+    const problemNumberStr = String(problem.questionId).padStart(4, '0');
+    folderPath = `LeetCode/${problem.difficulty}/${problemNumberStr}-${problem.titleSlug}`;
+  }
   
   const langName = typeof submission.lang === 'string' ? submission.lang : (submission.lang?.name || 'unknown');
   const ext = LANG_EXT_MAP[langName] || '.txt';
@@ -237,8 +248,9 @@ async function handleSubmissionSync(problem, submission) {
   const langDisplay = LANG_DISPLAY_MAP[langName] || langName;
   
   const rBeats = submission.runtimePercentile || submission.runtime_percentile || '';
-  const statsString = `Runtime ${submission.runtime}, Beats ${rBeats}%`.trim();
-  const commitMsg = `Sync: ${problemNumberStr}-${problem.titleSlug} (${langDisplay}) - ${statsString}`;
+  const source = isGfg ? 'GFG' : 'LC';
+  const statsString = submission.runtime ? `Runtime ${submission.runtime}` : '';
+  const commitMsg = `[${source}] Sync: ${problem.titleSlug} (${langDisplay}) ${statsString}`.trim();
 
   const codeHtmlUrl = await pushFile(owner, repoName, solutionPath, branch, submission.code, commitMsg);
 
@@ -264,13 +276,14 @@ async function handleSubmissionSync(problem, submission) {
   }
 
   const readmeContent = generateProblemReadme(problem, submission, solutions);
-  await pushFile(owner, repoName, readmePath, branch, readmeContent, `Docs: Update README for ${problemNumberStr}-${problem.titleSlug}`);
+  await pushFile(owner, repoName, readmePath, branch, readmeContent, `Docs: Update README for ${problem.titleSlug}`);
 
   await addToHistory({
-    problemId: problem.questionId,
+    problemId: problem.questionId || problem.titleSlug,
     title: problem.title,
     difficulty: problem.difficulty,
     lang: langDisplay,
+    source: isGfg ? 'GFG' : 'LeetCode',
     timestamp: Date.now(),
     url: codeHtmlUrl,
     status: 'success'

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LeetCode GitHub Sync",
-  "version": "1.0",
-  "description": "Automatically capture LeetCode submissions and push them to GitHub with full metadata.",
+  "name": "LeetCode & GFG GitHub Sync",
+  "version": "1.1",
+  "description": "Automatically capture LeetCode and GeeksforGeeks submissions and push them to GitHub with full metadata.",
   "permissions": [
     "storage",
     "activeTab",
@@ -11,6 +11,9 @@
   "host_permissions": [
     "https://leetcode.com/*",
     "https://leetcode.cn/*",
+    "https://www.geeksforgeeks.org/*",
+    "https://practice.geeksforgeeks.org/*",
+    "https://practiceapi.geeksforgeeks.org/*",
     "https://api.github.com/*"
   ],
   "content_scripts": [
@@ -22,12 +25,26 @@
       "js": ["scripts/content.js"],
       "css": ["styles/toast.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.geeksforgeeks.org/problems/*",
+        "https://practice.geeksforgeeks.org/problems/*"
+      ],
+      "js": ["scripts/gfg_content.js"],
+      "css": ["styles/toast.css"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["scripts/inject.js", "styles/toast.css"],
-      "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"]
+      "resources": ["scripts/inject.js", "scripts/gfg_inject.js", "styles/toast.css"],
+      "matches": [
+        "https://leetcode.com/*",
+        "https://leetcode.cn/*",
+        "https://www.geeksforgeeks.org/*",
+        "https://practice.geeksforgeeks.org/*"
+      ]
     }
   ],
   "background": {

@@ -183,10 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
       a.href = item.url;
       a.target = '_blank';
       a.className = 'history-item';
+      const srcBadge = item.source === 'GFG' ? '<span class="badge badge-GFG">GFG</span>' : '<span class="badge badge-LC">LC</span>';
       a.innerHTML = `
         <div class="hi-main">
           <span class="hi-title">${item.title}</span>
           <span class="hi-meta">
+            ${srcBadge}
             <span class="badge badge-${item.difficulty}">${item.difficulty}</span>
             ${item.lang} • ${dateStr}
           </span>

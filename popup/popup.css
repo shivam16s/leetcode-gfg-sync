@@ -264,6 +264,8 @@ select {
 .badge-Medium { background: rgba(255, 192, 30, 0.1); color: #ffc01e; }
 .badge-Hard { background: rgba(255, 55, 95, 0.1); color: #ff375f; }
 .badge-Failed { background: rgba(255, 55, 95, 0.2); color: #ff375f; }
+.badge-LC { background: rgba(255, 161, 22, 0.1); color: #ffa116; }
+.badge-GFG { background: rgba(45, 181, 93, 0.1); color: #2db55d; }
 
 /* Settings */
 .form-group {
