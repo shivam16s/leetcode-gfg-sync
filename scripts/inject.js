@@ -12,8 +12,8 @@
       const data = JSON.parse(responseText);
       
       // Check if it's an Accepted submission
-      // Exclude "Run Code" results by ensuring run-specific fields are missing
-      if (data.run_success !== undefined || data.code_answer !== undefined) {
+      // Exclude "Run Code" results by checking for 'code_answer' and ensuring 'total_testcases' exists
+      if (data.code_answer !== undefined || data.total_testcases === undefined) {
         return;
       }
 
