@@ -12,6 +12,11 @@
       const data = JSON.parse(responseText);
       
       // Check if it's an Accepted submission
+      // Exclude "Run Code" results by ensuring run-specific fields are missing
+      if (data.run_success !== undefined || data.compare_result !== undefined || data.code_answer !== undefined) {
+        return;
+      }
+
       if ((data.state === 'SUCCESS' && data.status_msg === 'Accepted') || data.statusDisplay === 'Accepted') {
         const submissionIdMatch = urlStr.match(/(?:detail|submissions)\/(\d+)/);
         if (!submissionIdMatch && !data.submission_id) return;
