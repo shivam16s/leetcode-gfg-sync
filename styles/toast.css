@@ -1,0 +1,56 @@
+#leetcode-github-sync-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  z-index: 999999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  overflow: hidden;
+}
+
+#leetcode-github-sync-toast.lgs-toast-hide {
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+.lgs-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lgs-toast-icon {
+  font-size: 18px;
+}
+
+.lgs-toast-success .lgs-toast-icon { color: #00b8a3; }
+.lgs-toast-error .lgs-toast-icon { color: #ff375f; }
+.lgs-toast-info .lgs-toast-icon { color: #58a6ff; }
+
+.lgs-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #58a6ff;
+  width: 100%;
+  animation: lgs-progress 5s linear forwards;
+}
+
+.lgs-toast-success .lgs-toast-progress { background: #00b8a3; }
+.lgs-toast-error .lgs-toast-progress { background: #ff375f; }
+.lgs-toast-info .lgs-toast-progress { display: none; /* No progress bar for info/loading */ }
+
+@keyframes lgs-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}

@@ -6,11 +6,11 @@
 - [x] Set up project folder structure
 
 ## Phase 2: LeetCode Submission Capture
-- [ ] Build `scripts/inject.js` — intercept fetch/XHR for submission check responses
-- [ ] Build `scripts/content.js` — receive messages, fetch GraphQL data
-- [ ] Implement LeetCode GraphQL queries (questionData + submissionDetails)
-- [ ] Add deduplication logic (submission ID tracking)
-- [ ] Add auto-sync toggle check
+- [x] Build `scripts/inject.js` — intercept fetch/XHR for submission check responses
+- [x] Build `scripts/content.js` — receive messages, fetch GraphQL data
+- [x] Implement LeetCode GraphQL queries (questionData + submissionDetails)
+- [x] Add deduplication logic (submission ID tracking)
+- [x] Add auto-sync toggle check
 
 ## Phase 3: GitHub Integration
 - [ ] Build `scripts/background.js` — service worker
