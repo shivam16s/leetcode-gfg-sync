@@ -8,8 +8,8 @@
       return;
     }
 
-    // Ignore "Compile and Run" requests (they often don't contain 'submit', or explicitly contain 'compile')
-    if (urlStr.includes('compile') || !urlStr.includes('submit')) {
+    // Ignore "Compile and Run" requests
+    if (urlStr.includes('compile')) {
       return;
     }
 

@@ -13,7 +13,7 @@
       
       // Check if it's an Accepted submission
       // Exclude "Run Code" results by ensuring run-specific fields are missing
-      if (data.run_success !== undefined || data.compare_result !== undefined || data.code_answer !== undefined) {
+      if (data.run_success !== undefined || data.code_answer !== undefined) {
         return;
       }
 
