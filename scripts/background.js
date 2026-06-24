@@ -377,7 +377,9 @@ async function fetchAllAcceptedSubmissions() {
   let hasNext = true;
   
   while (hasNext) {
-    const res = await fetch(`https://leetcode.com/api/submissions/?offset=${offset}&limit=${limit}`);
+    const res = await fetch(`https://leetcode.com/api/submissions/?offset=${offset}&limit=${limit}`, {
+      credentials: 'include'
+    });
     if (!res.ok) throw new Error('Failed to fetch LeetCode submissions (Are you logged in?)');
     const data = await res.json();
     
@@ -404,7 +406,8 @@ async function fetchLeetCodeGraphQL(query, variables) {
   const res = await fetch('https://leetcode.com/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({ query, variables }),
+    credentials: 'include'
   });
   if (!res.ok) throw new Error('GraphQL fetch failed');
   return res.json();
