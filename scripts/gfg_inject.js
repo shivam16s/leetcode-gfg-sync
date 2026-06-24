@@ -80,6 +80,11 @@
           if (aceEl && window.ace) {
             const editor = window.ace.edit(aceEl);
             code = editor.getValue();
+            const session = editor.getSession();
+            if (session && session.getMode && !language) {
+              const mode = session.getMode().$id;
+              if (mode) language = mode.split('/').pop();
+            }
           }
         } catch (e) {}
       }
@@ -180,6 +185,11 @@
         if (aceEl && window.ace) {
           const editor = window.ace.edit(aceEl);
           code = editor.getValue();
+          const session = editor.getSession();
+          if (session && session.getMode && !language) {
+            const mode = session.getMode().$id;
+            if (mode) language = mode.split('/').pop();
+          }
         }
       } catch (e) {}
     }

@@ -76,7 +76,8 @@ async function githubApi(endpoint, options = {}) {
 
   const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
     ...options,
-    headers
+    headers,
+    cache: 'no-cache'
   });
 
   if (response.status === 403 || response.status === 429) {

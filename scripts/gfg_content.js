@@ -167,7 +167,11 @@ function extractLanguage() {
   // Try button-style language selector
   const langBtn = document.querySelector('.problems_header_menu__items__Y3MXs button') ||
     document.querySelector('[class*="languageSelected"]') ||
-    document.querySelector('[class*="lang-btn"]');
+    document.querySelector('[class*="lang-btn"]') ||
+    document.querySelector('.divider + div .selected') ||
+    document.querySelector('.language-dropdown .selected') ||
+    document.querySelector('.dropdown-toggle') ||
+    document.querySelector('div[class*="Language"] div[class*="selected"]');
   
   if (langBtn) {
     return mapGfgLang(langBtn.textContent.trim());
