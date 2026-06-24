@@ -73,6 +73,27 @@
         } catch (e) {}
       }
 
+      // Main-world fallback: Ace Editor
+      if (!code) {
+        try {
+          const aceEl = document.querySelector('.ace_editor');
+          if (aceEl && window.ace) {
+            const editor = window.ace.edit(aceEl);
+            code = editor.getValue();
+          }
+        } catch (e) {}
+      }
+
+      // Fallback: Textarea
+      if (!code) {
+        try {
+          const textarea = document.querySelector('textarea[name="code"]') ||
+            document.querySelector('.editor textarea') ||
+            document.querySelector('#code');
+          if (textarea) code = textarea.value;
+        } catch (e) {}
+      }
+
       // Post message to the GFG content script
       window.postMessage({
         type: 'GFG_SUBMISSION_ACCEPTED',
@@ -149,6 +170,27 @@
         if (cmEl && cmEl.CodeMirror) {
           code = cmEl.CodeMirror.getValue();
         }
+      } catch (e) {}
+    }
+    
+    // Main-world fallback: Ace Editor
+    if (!code) {
+      try {
+        const aceEl = document.querySelector('.ace_editor');
+        if (aceEl && window.ace) {
+          const editor = window.ace.edit(aceEl);
+          code = editor.getValue();
+        }
+      } catch (e) {}
+    }
+
+    // Fallback: Textarea
+    if (!code) {
+      try {
+        const textarea = document.querySelector('textarea[name="code"]') ||
+          document.querySelector('.editor textarea') ||
+          document.querySelector('#code');
+        if (textarea) code = textarea.value;
       } catch (e) {}
     }
     
