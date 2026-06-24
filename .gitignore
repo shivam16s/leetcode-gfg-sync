@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Secrets / Tokens (NEVER commit these)
+*.pem
+*.key
+.env
+.env.local
+.env.production
+secrets.json
+
+# Build artifacts
+dist/
+build/
+*.zip
+
+# Logs
+*.log
+npm-debug.log*
+
+# System
+.git/
