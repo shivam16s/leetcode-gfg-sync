@@ -7,6 +7,7 @@
 ![GitHub API](https://img.shields.io/badge/GitHub-API-181717?style=for-the-badge&logo=github&logoColor=white)
 ![LeetCode](https://img.shields.io/badge/LeetCode-Sync-FFA116?style=for-the-badge&logo=leetcode&logoColor=white)
 ![GeeksforGeeks](https://img.shields.io/badge/GFG-Sync-2F8D46?style=for-the-badge&logo=geeksforgeeks&logoColor=white)
+![License](https://img.shields.io/github/license/shivam16s/leetcode-gfg-sync?style=for-the-badge&color=blue)
 
 **Automatically capture your accepted LeetCode & GeeksforGeeks submissions and push them to a GitHub repository — with full metadata, organized by platform and difficulty.**
 
@@ -153,7 +154,7 @@ your-solutions-repo/
 ### Developer Mode (Local)
 1. Clone this repository
    ```bash
-   git clone https://github.com/shivam16s/leetcode-github-sync.git
+   git clone https://github.com/shivam16s/leetcode-gfg-sync.git
    ```
 2. Open Chrome → `chrome://extensions/`
 3. Enable **Developer Mode** (top-right toggle)
@@ -169,7 +170,7 @@ your-solutions-repo/
 ## 🗂️ Project Structure
 
 ```
-leetcode-github-sync/
+leetcode-gfg-sync/
 ├── manifest.json              # Extension configuration (Manifest V3)
 ├── scripts/
 │   ├── inject.js              # LeetCode — intercepts submissions

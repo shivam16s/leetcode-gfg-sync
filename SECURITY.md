@@ -37,7 +37,7 @@
 If you discover a security vulnerability in this extension, please:
 
 1. **DO NOT** open a public issue.
-2. Email the maintainer directly or use [GitHub Security Advisories](https://github.com/shivam16s/leetcode-github-sync/security/advisories/new).
+2. Email the maintainer directly or use [GitHub Security Advisories](https://github.com/shivam16s/leetcode-gfg-sync/security/advisories/new).
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce

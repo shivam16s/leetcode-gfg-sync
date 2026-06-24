@@ -5,7 +5,7 @@ Thank you for your interest in contributing! 🙏
 ## How to Contribute
 
 ### Reporting Bugs
-1. Check [existing issues](https://github.com/shivam16s/leetcode-github-sync/issues) first.
+1. Check [existing issues](https://github.com/shivam16s/leetcode-gfg-sync/issues) first.
 2. Open a new issue with:
    - Browser version
    - Steps to reproduce

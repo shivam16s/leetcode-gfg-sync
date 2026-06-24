@@ -1,4 +1,4 @@
-#leetcode-github-sync-toast {
+#leetcode-gfg-sync-toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -17,7 +17,7 @@
   overflow: hidden;
 }
 
-#leetcode-github-sync-toast.lgs-toast-hide {
+#leetcode-gfg-sync-toast.lgs-toast-hide {
   transform: translateX(120%);
   opacity: 0;
 }

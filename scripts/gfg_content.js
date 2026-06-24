@@ -168,11 +168,11 @@ function mapGfgLang(raw) {
 // --- Toast Notifications ---
 
 function showToast(message, type = 'success') {
-  const existingToast = document.getElementById('leetcode-github-sync-toast');
+  const existingToast = document.getElementById('leetcode-gfg-sync-toast');
   if (existingToast) existingToast.remove();
 
   const toast = document.createElement('div');
-  toast.id = 'leetcode-github-sync-toast';
+  toast.id = 'leetcode-gfg-sync-toast';
   toast.className = `lgs-toast lgs-toast-${type}`;
   toast.innerHTML = `
     <div class="lgs-toast-content">
@@ -192,7 +192,7 @@ function showToast(message, type = 'success') {
 }
 
 function dismissToast() {
-  const toast = document.getElementById('leetcode-github-sync-toast');
+  const toast = document.getElementById('leetcode-gfg-sync-toast');
   if (toast) {
     toast.classList.add('lgs-toast-hide');
     setTimeout(() => toast.remove(), 300);
