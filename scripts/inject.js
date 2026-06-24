@@ -13,10 +13,10 @@
       
       // Check if it's an Accepted submission
       if ((data.state === 'SUCCESS' && data.status_msg === 'Accepted') || data.statusDisplay === 'Accepted') {
-        const submissionIdMatch = urlStr.match(/(\d+)/);
+        const submissionIdMatch = urlStr.match(/(?:detail|submissions)\/(\d+)/);
         if (!submissionIdMatch && !data.submission_id) return;
         
-        const submissionId = data.submission_id || submissionIdMatch[0];
+        const submissionId = data.submission_id || submissionIdMatch[1];
         
         // Prevent duplicate processing
         if (PROCESSED_SUBMISSIONS.has(submissionId)) return;

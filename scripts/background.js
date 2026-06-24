@@ -42,6 +42,13 @@ const LANG_DISPLAY_MAP = {
 
 // --- Helper Functions ---
 
+class RateLimitError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "RateLimitError";
+  }
+}
+
 async function getSettings() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['githubToken', 'githubRepo', 'githubBranch'], resolve);
@@ -74,7 +81,7 @@ async function githubApi(endpoint, options = {}) {
 
   if (response.status === 403 || response.status === 429) {
      const remaining = response.headers.get('x-ratelimit-remaining');
-     if (remaining === '0') throw new Error('GitHub API rate limit exceeded');
+     if (remaining === '0') throw new RateLimitError('GitHub API rate limit exceeded. Please wait an hour before trying again.');
   }
 
   if (response.status === 204) return null;
@@ -173,8 +180,13 @@ async function pushFile(owner, repoName, path, branch, content, commitMessage) {
 function generateProblemReadme(problem, submission, solutions) {
   const diffColor = problem.difficulty === 'Easy' ? 'brightgreen' : (problem.difficulty === 'Medium' ? 'orange' : 'red');
   const tags = (problem.topicTags || []).map(t => `\`${t.name}\``).join(' ');
-  const ts = parseInt(submission.timestamp);
-  const dateStr = isNaN(ts) ? (submission.timestamp || 'N/A') : new Date(ts * 1000).toUTCString();
+  
+  // Handle both Unix timestamps (LeetCode) and ISO strings (GFG)
+  const tsStr = String(submission.timestamp || '');
+  const isNumeric = /^\d+$/.test(tsStr);
+  const tsMs = isNumeric ? parseInt(tsStr) * 1000 : new Date(tsStr).getTime();
+  const dateStr = isNaN(tsMs) ? (submission.timestamp || 'N/A') : new Date(tsMs).toUTCString();
+
   const source = problem.source || 'LeetCode';
   const problemLabel = source === 'GFG' ? problem.title : `${problem.questionId}. ${problem.title}`;
 
@@ -340,6 +352,9 @@ async function startSyncPastSubmissions() {
         await processSinglePastSubmission(sub);
       } catch (err) {
         console.error(`Failed to sync past submission ${sub.id}:`, err);
+        if (err.name === 'RateLimitError') {
+           throw new Error('GitHub API rate limit hit. Bulk sync aborted to prevent ban. Please wait an hour.');
+        }
       }
       
       chrome.storage.local.set({ syncProgress: { current: i + 1, total: allAccepted.length, status: `Finished ${sub.title_slug}` }});

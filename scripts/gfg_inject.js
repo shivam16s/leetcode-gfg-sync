@@ -53,9 +53,9 @@
       // Main-world fallback: Monaco Editor
       if (!code && window.monaco && window.monaco.editor) {
         try {
-          const models = window.monaco.editor.getModels();
+          const models = window.monaco.editor.getModels ? window.monaco.editor.getModels() : [];
           if (models.length > 0) {
-            code = models[0].getValue();
+            code = models[0].getValue ? models[0].getValue() : code;
             if (!language && models[0].getLanguageId) {
               language = models[0].getLanguageId();
             }
