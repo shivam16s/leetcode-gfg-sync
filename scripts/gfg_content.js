@@ -56,18 +56,40 @@ function extractProblemFromDOM() {
     let difficulty = diffEl ? diffEl.textContent.trim() : 'Medium';
 
     // Tags
-    const tagEls = document.querySelectorAll('.problems_tag_container__kWANg a, .problem-tag a, [class*="tag"] a');
-    const tags = Array.from(tagEls).map(el => ({
-      name: el.textContent.trim(),
-      slug: el.textContent.trim().toLowerCase().replace(/\s+/g, '-')
-    }));
+    const tagEls = document.querySelectorAll('.problems_tag_container__kWANg a, .problem-tag a, [class*="tag"] a, .badge, .chips a, .problems_tag_container__yXJ2L a');
+    const tags = [];
+    tagEls.forEach(el => {
+      const text = el.textContent.trim();
+      // Filter out garbage/articles, tags are usually short 1-3 words
+      if (text && text.length > 0 && text.length < 35 && !text.toLowerCase().includes('interview experience')) {
+        tags.push({
+          name: text,
+          slug: text.toLowerCase().replace(/\s+/g, '-')
+        });
+      }
+    });
+
+    // Content / Problem Statement
+    const contentEl = document.querySelector('.problems_problem_content__Xm_eO') ||
+      document.querySelector('.problem-statement') ||
+      document.querySelector('.problem_content') ||
+      document.querySelector('div[class^="problems_problem_content"]') ||
+      document.querySelector('div[class*="ProblemDescription"]');
+    
+    let content = '';
+    if (contentEl) {
+      content = contentEl.innerHTML || contentEl.textContent || '';
+    }
+
+    // Deduplicate tags
+    const uniqueTags = Array.from(new Map(tags.map(t => [t.slug, t])).values());
 
     return {
       title: title,
       titleSlug: extractSlugFromUrl(),
       difficulty: normalizeDifficulty(difficulty),
-      topicTags: tags.length > 0 ? tags : [{ name: 'GeeksforGeeks', slug: 'geeksforgeeks' }],
-      content: ''
+      topicTags: uniqueTags.length > 0 ? uniqueTags : [{ name: 'GeeksforGeeks', slug: 'geeksforgeeks' }],
+      content: content
     };
   } catch (err) {
     console.error('GFG: Failed to extract from DOM:', err);
