@@ -207,38 +207,6 @@ function dismissToast() {
   }
 }
 
-// --- DOM Observer Fallback ---
-// If XHR interception misses, watch for "Problem Solved Successfully" in DOM
-
-let domObserverFired = false;
-
-const observer = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    for (const node of mutation.addedNodes) {
-      if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent || '';
-        if (
-          (text.includes('Problem Solved Successfully') || text.includes('Correct Answer')) &&
-          !domObserverFired
-        ) {
-          domObserverFired = true;
-          setTimeout(() => { domObserverFired = false; }, 10000); // cooldown
-
-          // Trigger the same flow as if inject.js posted
-          handleAcceptedSubmission({
-            runtime: '',
-            memory: '',
-            status_msg: text.includes('Problem Solved') ? 'Problem Solved Successfully' : 'Correct Answer',
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
-    }
-  }
-});
-
-observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-
 // --- Main Handler ---
 
 function handleAcceptedSubmission(submissionData) {
