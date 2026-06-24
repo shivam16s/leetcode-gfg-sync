@@ -368,3 +368,53 @@ input:checked + .slider:before { transform: translateX(16px); }
 }
 .status-success { color: #00b8a3; }
 .status-error { color: #ff375f; }
+
+/* Guide */
+.guide-content h3 {
+  color: #58a6ff;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.guide-step {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.step-num {
+  background: #238636;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #c9d1d9;
+}
+
+.step-text strong {
+  font-size: 13px;
+  color: #fff;
+}
+
+.step-text code {
+  background: rgba(110, 118, 129, 0.4);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}

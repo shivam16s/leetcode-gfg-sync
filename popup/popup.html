@@ -16,6 +16,7 @@
         <button class="nav-btn active" data-target="dashboard">Dashboard</button>
         <button class="nav-btn" data-target="history">History</button>
         <button class="nav-btn" data-target="settings">Settings</button>
+        <button class="nav-btn" data-target="guide">Guide</button>
       </nav>
     </header>
 
@@ -122,6 +123,43 @@
               <div style="width: 100%; height: 6px; background: #30363d; border-radius: 3px; overflow: hidden;">
                 <div id="sync-past-bar" style="width: 0%; height: 100%; background: #238636; transition: width 0.3s;"></div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Guide Tab -->
+      <section id="guide" class="tab-content">
+        <div class="guide-content">
+          <h3>How to use LC & GFG Sync</h3>
+          
+          <div class="guide-step">
+            <span class="step-num">1</span>
+            <div class="step-text">
+              <strong>Generate GitHub Token</strong><br>
+              Go to GitHub Settings > Developer Settings > Personal access tokens (classic). Generate a new token with the <code>repo</code> scope ticked.
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">2</span>
+            <div class="step-text">
+              <strong>Link Your Repo</strong><br>
+              In the Settings tab, paste your token and type your repository name (e.g. <code>username/leetcode-solutions</code>). Click "Save & Test". It will automatically create a private repo for you!
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">3</span>
+            <div class="step-text">
+              <strong>Solve & Submit</strong><br>
+              Head over to LeetCode or GeeksforGeeks and solve a problem. Once you click Submit and get an "Accepted" result, your code is automatically pushed to GitHub!
+            </div>
+          </div>
+
+          <div class="guide-step" style="background: transparent; border: none; padding: 0;">
+            <div class="step-text" style="color: #8b949e; font-size: 11px;">
+              <strong>Tip:</strong> Want to sync past submissions? Use the "Sync All Past Submissions" button in the Settings tab!
             </div>
           </div>
         </div>
