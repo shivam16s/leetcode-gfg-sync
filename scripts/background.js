@@ -166,7 +166,8 @@ async function pushFile(owner, repoName, path, branch, content, commitMessage) {
 
 function generateProblemReadme(problem, submission, codeHtmlUrl) {
   const diffColor = problem.difficulty === 'Easy' ? 'brightgreen' : (problem.difficulty === 'Medium' ? 'orange' : 'red');
-  const langDisplay = LANG_DISPLAY_MAP[submission.lang.name] || submission.lang.name;
+  const langName = typeof submission.lang === 'string' ? submission.lang : (submission.lang?.name || 'unknown');
+  const langDisplay = LANG_DISPLAY_MAP[langName] || langName;
   const tags = problem.topicTags.map(t => `\`${t.name}\``).join(' ');
   const ts = parseInt(submission.timestamp);
   const dateStr = isNaN(ts) ? submission.timestamp : new Date(ts * 1000).toUTCString();
@@ -219,12 +220,14 @@ async function handleSubmissionSync(problem, submission) {
   const problemNumberStr = String(problem.questionId).padStart(4, '0');
   const folderPath = `${problem.difficulty}/${problemNumberStr}-${problem.titleSlug}`;
   
-  const ext = LANG_EXT_MAP[submission.lang.name] || '.txt';
+  const langName = typeof submission.lang === 'string' ? submission.lang : (submission.lang?.name || 'unknown');
+  
+  const ext = LANG_EXT_MAP[langName] || '.txt';
   const solutionFileName = `solution${ext}`;
   const solutionPath = `${folderPath}/${solutionFileName}`;
   const readmePath = `${folderPath}/README.md`;
 
-  const langDisplay = LANG_DISPLAY_MAP[submission.lang.name] || submission.lang.name;
+  const langDisplay = LANG_DISPLAY_MAP[langName] || langName;
   
   const rBeats = submission.runtimePercentile || submission.runtime_percentile || '';
   const statsString = `Runtime ${submission.runtime}, Beats ${rBeats}%`.trim();
