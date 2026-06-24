@@ -17,10 +17,13 @@ function extractProblemFromNextData() {
     if (!pageProps) return null;
 
     // GFG nests problem data in various keys depending on version
-    const pd = pageProps.problemData || pageProps.problem || pageProps;
+    const pd = pageProps.problemData || pageProps.problem || pageProps.page || pageProps;
+
+    const title = pd.problem_name || pd.title || pd.problemName || pd.name || '';
+    if (!title) return null; // Force fallback if no title found
 
     return {
-      title: pd.problem_name || pd.title || pd.problemName || '',
+      title: title,
       titleSlug: pd.slug || pd.problem_slug || extractSlugFromUrl(),
       difficulty: normalizeDifficulty(pd.difficulty || pd.difficultyLevel || ''),
       topicTags: extractTags(pd),
@@ -35,11 +38,16 @@ function extractProblemFromNextData() {
 function extractProblemFromDOM() {
   try {
     // Title
-    const titleEl = document.querySelector('h3.problems_header_content__title__L2cB2') ||
-      document.querySelector('h3[class*="title"]') ||
+    const titleEl = document.querySelector('.problems_header_content__title__L2cB2') ||
+      document.querySelector('[class*="ProblemsHeader_problems_header_content__title"]') ||
       document.querySelector('.problem-tab-title h3') ||
+      document.querySelector('div[class*="title"] h3') ||
+      document.querySelector('.problems_header_title') ||
+      document.querySelector('h3') ||
       document.querySelector('h1');
     const title = titleEl ? titleEl.textContent.trim() : '';
+    
+    if (!title) return null;
 
     // Difficulty
     const diffEl = document.querySelector('.problems_header_content__difficulty__Jjimm') ||
@@ -241,19 +249,23 @@ function handleAcceptedSubmission(submissionData) {
 
     try {
       // 1. Extract problem info
-      let problem = extractProblemFromNextData() || extractProblemFromDOM();
+      let problem = extractProblemFromNextData();
+      if (!problem || !problem.title) {
+        problem = extractProblemFromDOM();
+      }
+      
       if (!problem || !problem.title) throw new Error('Could not extract problem data from GFG page');
 
       // Use slug as a pseudo question ID for folder naming  
       problem.questionId = problem.titleSlug;
       problem.source = 'GFG';
 
-      // 2. Extract code from the editor
-      const code = extractCode();
-      if (!code) throw new Error('Could not extract code from editor');
+      // 2. Extract code
+      const code = submissionData.code || extractCode();
+      if (!code) throw new Error('Could not find submission code');
 
-      // 3. Get language
-      const lang = extractLanguage();
+      // 3. Extract language
+      const lang = mapGfgLang(submissionData.language || extractLanguage());
 
       // 4. Build payload
       const payload = {
