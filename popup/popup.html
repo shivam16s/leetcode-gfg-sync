@@ -111,6 +111,19 @@
           </div>
           
           <div id="connection-status" class="status-msg"></div>
+
+          <div class="actions" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #30363d;">
+            <button id="sync-past-btn" class="btn btn-secondary" style="width: 100%;">Sync All Past Submissions</button>
+            <div id="sync-past-progress" style="margin-top: 12px; display: none;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8b949e; margin-bottom: 6px;">
+                <span id="sync-past-status">Fetching history...</span>
+                <span id="sync-past-count">0/0</span>
+              </div>
+              <div style="width: 100%; height: 6px; background: #30363d; border-radius: 3px; overflow: hidden;">
+                <div id="sync-past-bar" style="width: 0%; height: 100%; background: #238636; transition: width 0.3s;"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>

@@ -49,7 +49,6 @@ async function getSettings() {
 }
 
 function base64EncodeUnicode(str) {
-  // Handle UTF-8 properly
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
     function toSolidBytes(match, p1) {
       return String.fromCharCode('0x' + p1);
@@ -78,7 +77,7 @@ async function githubApi(endpoint, options = {}) {
      if (remaining === '0') throw new Error('GitHub API rate limit exceeded');
   }
 
-  if (response.status === 204) return null; // No content
+  if (response.status === 204) return null;
 
   if (!response.ok) {
     let message = `GitHub API Error ${response.status}`;
@@ -116,14 +115,13 @@ async function checkAndCreateRepo(owner, repoName) {
     return repoInfo.default_branch;
   } catch (err) {
     if (err.message.includes('404')) {
-      // Create repo
       const newRepo = await githubApi(`/user/repos`, {
         method: 'POST',
         body: JSON.stringify({
           name: repoName,
           description: 'LeetCode solutions auto-synced by LeetCode GitHub Sync Chrome Extension',
           private: true,
-          auto_init: true // set to true so we have a branch
+          auto_init: true
         })
       });
       return newRepo.default_branch;
@@ -132,12 +130,20 @@ async function checkAndCreateRepo(owner, repoName) {
   }
 }
 
+async function getFolderContents(owner, repoName, path, branch) {
+  try {
+    return await githubApi(`/repos/${owner}/${repoName}/contents/${encodeURIComponent(path)}?ref=${branch}`);
+  } catch (err) {
+    return [];
+  }
+}
+
 async function getFileSha(owner, repoName, path, branch) {
   try {
     const data = await githubApi(`/repos/${owner}/${repoName}/contents/${encodeURIComponent(path)}?ref=${branch}`);
     return data.sha;
   } catch (err) {
-    return null; // File doesn't exist
+    return null;
   }
 }
 
@@ -164,23 +170,25 @@ async function pushFile(owner, repoName, path, branch, content, commitMessage) {
 
 // --- Content Generators ---
 
-function generateProblemReadme(problem, submission, codeHtmlUrl) {
+function generateProblemReadme(problem, submission, solutions) {
   const diffColor = problem.difficulty === 'Easy' ? 'brightgreen' : (problem.difficulty === 'Medium' ? 'orange' : 'red');
-  const langName = typeof submission.lang === 'string' ? submission.lang : (submission.lang?.name || 'unknown');
-  const langDisplay = LANG_DISPLAY_MAP[langName] || langName;
   const tags = problem.topicTags.map(t => `\`${t.name}\``).join(' ');
   const ts = parseInt(submission.timestamp);
   const dateStr = isNaN(ts) ? submission.timestamp : new Date(ts * 1000).toUTCString();
   
+  let solutionsList = '';
+  solutions.forEach(s => {
+    solutionsList += `- [${s.langDisplay}](${s.fileName})\n`;
+  });
+
   return `# [${problem.questionId}. ${problem.title}](${submission.problemUrl})
 
 ![Difficulty](https://img.shields.io/badge/Difficulty-${problem.difficulty}-${diffColor})
-![Language](https://img.shields.io/badge/Language-${encodeURIComponent(langDisplay).replace(/-/g, '--')}-blue)
 
 ## Tags
 ${tags || 'None'}
 
-## Stats
+## Stats (Latest Submission)
 | Metric | Value |
 |--------|-------|
 | Runtime | ${submission.runtime || 'N/A'} |
@@ -192,8 +200,8 @@ ${tags || 'None'}
 ## Problem Description
 ${problem.content}
 
-## Solution
-[View Code](${codeHtmlUrl})
+## Solutions
+${solutionsList}
 `;
 }
 
@@ -221,7 +229,6 @@ async function handleSubmissionSync(problem, submission) {
   const folderPath = `${problem.difficulty}/${problemNumberStr}-${problem.titleSlug}`;
   
   const langName = typeof submission.lang === 'string' ? submission.lang : (submission.lang?.name || 'unknown');
-  
   const ext = LANG_EXT_MAP[langName] || '.txt';
   const solutionFileName = `solution${ext}`;
   const solutionPath = `${folderPath}/${solutionFileName}`;
@@ -235,7 +242,28 @@ async function handleSubmissionSync(problem, submission) {
 
   const codeHtmlUrl = await pushFile(owner, repoName, solutionPath, branch, submission.code, commitMsg);
 
-  const readmeContent = generateProblemReadme(problem, submission, codeHtmlUrl.split('/').pop());
+  // Multi-Language README Logic
+  const folderContents = await getFolderContents(owner, repoName, folderPath, branch);
+  const solutions = [];
+  let foundCurrent = false;
+  
+  if (Array.isArray(folderContents)) {
+    folderContents.forEach(file => {
+      if (file.name.startsWith('solution')) {
+        const fExt = file.name.substring(file.name.lastIndexOf('.'));
+        let dName = Object.keys(LANG_EXT_MAP).find(k => LANG_EXT_MAP[k] === fExt) || fExt;
+        dName = LANG_DISPLAY_MAP[dName] || dName;
+        solutions.push({ langDisplay: dName, fileName: file.name });
+        if (file.name === solutionFileName) foundCurrent = true;
+      }
+    });
+  }
+
+  if (!foundCurrent) {
+    solutions.push({ langDisplay, fileName: solutionFileName });
+  }
+
+  const readmeContent = generateProblemReadme(problem, submission, solutions);
   await pushFile(owner, repoName, readmePath, branch, readmeContent, `Docs: Update README for ${problemNumberStr}-${problem.titleSlug}`);
 
   await addToHistory({
@@ -276,6 +304,116 @@ async function addToFailedQueue(payload) {
   });
 }
 
+// --- Sync Past Submissions Logic ---
+
+let isSyncingPast = false;
+
+async function startSyncPastSubmissions() {
+  if (isSyncingPast) return;
+  isSyncingPast = true;
+  
+  try {
+    chrome.storage.local.set({ syncProgress: { current: 0, total: 0, status: 'Fetching history from LeetCode...' }});
+    
+    const allAccepted = await fetchAllAcceptedSubmissions();
+    chrome.storage.local.set({ syncProgress: { current: 0, total: allAccepted.length, status: 'Syncing to GitHub...' }});
+    
+    for (let i = 0; i < allAccepted.length; i++) {
+      if (!isSyncingPast) break; 
+      const sub = allAccepted[i];
+      
+      try {
+        chrome.storage.local.set({ syncProgress: { current: i, total: allAccepted.length, status: `Syncing ${sub.title_slug}...` }});
+        await processSinglePastSubmission(sub);
+      } catch (err) {
+        console.error(`Failed to sync past submission ${sub.id}:`, err);
+      }
+      
+      chrome.storage.local.set({ syncProgress: { current: i + 1, total: allAccepted.length, status: `Finished ${sub.title_slug}` }});
+      await new Promise(r => setTimeout(r, 2500)); // 2.5s delay to avoid bans
+    }
+    
+    chrome.storage.local.set({ syncProgress: { current: allAccepted.length, total: allAccepted.length, status: 'Complete!' }});
+  } catch (err) {
+    console.error('Past sync error:', err);
+    chrome.storage.local.set({ syncProgress: { status: `Error: ${err.message}` }});
+  } finally {
+    isSyncingPast = false;
+  }
+}
+
+async function fetchAllAcceptedSubmissions() {
+  const accepted = new Map();
+  let offset = 0;
+  const limit = 20;
+  let hasNext = true;
+  
+  while (hasNext) {
+    const res = await fetch(`https://leetcode.com/api/submissions/?offset=${offset}&limit=${limit}`);
+    if (!res.ok) throw new Error('Failed to fetch LeetCode submissions (Are you logged in?)');
+    const data = await res.json();
+    
+    if (!data.submissions_dump || data.submissions_dump.length === 0) break;
+    
+    for (const sub of data.submissions_dump) {
+      if (sub.status_display === 'Accepted') {
+        const key = `${sub.title_slug}_${sub.lang}`;
+        if (!accepted.has(key)) {
+          accepted.set(key, sub);
+        }
+      }
+    }
+    
+    hasNext = data.has_next;
+    offset += limit;
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  
+  return Array.from(accepted.values());
+}
+
+async function fetchLeetCodeGraphQL(query, variables) {
+  const res = await fetch('https://leetcode.com/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  });
+  if (!res.ok) throw new Error('GraphQL fetch failed');
+  return res.json();
+}
+
+async function processSinglePastSubmission(subInfo) {
+  const questionData = await fetchLeetCodeGraphQL(`
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        questionId title titleSlug difficulty
+        topicTags { name slug } content
+      }
+    }`, { titleSlug: subInfo.title_slug });
+    
+  if (!questionData || !questionData.data.question) throw new Error('Failed to fetch problem data');
+
+  const detailsData = await fetchLeetCodeGraphQL(`
+    query submissionDetails($submissionId: Int!) {
+      submissionDetails(submissionId: $submissionId) {
+        code timestamp statusDisplay runtime runtimePercentile memory memoryPercentile
+        lang { name verboseName }
+      }
+    }`, { submissionId: subInfo.id });
+
+  if (!detailsData || !detailsData.data.submissionDetails) throw new Error('Failed to fetch submission details');
+
+  const submission = {
+    ...detailsData.data.submissionDetails,
+    ...subInfo, 
+    problemUrl: `https://leetcode.com/problems/${subInfo.title_slug}`
+  };
+
+  await handleSubmissionSync(questionData.data.question, submission);
+}
+
+// --- Message Listener ---
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'VALIDATE_TOKEN') {
     validateToken(request.token).then(sendResponse);
@@ -295,6 +433,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   if (request.action === 'RETRY_FAILED') {
     processFailedQueue();
+    sendResponse({ success: true });
+    return true;
+  }
+  
+  if (request.action === 'SYNC_ALL_PAST') {
+    startSyncPastSubmissions();
     sendResponse({ success: true });
     return true;
   }
@@ -321,7 +465,6 @@ async function processFailedQueue() {
     const newQueue = [];
 
     for (let item of queue) {
-      // Exponential backoff: 5m, 10m, 20m, 40m, max 1hr
       const delay = Math.min((5 * 60 * 1000) * Math.pow(2, item.attempts - 1), 60 * 60 * 1000);
       
       if (now - item.timestamp > delay) {

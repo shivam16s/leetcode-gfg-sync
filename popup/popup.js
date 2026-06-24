@@ -212,10 +212,57 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial load
   loadData();
 
+  // Sync Past Submissions Logic
+  const syncPastBtn = document.getElementById('sync-past-btn');
+  const syncProgressContainer = document.getElementById('sync-past-progress');
+  const syncStatus = document.getElementById('sync-past-status');
+  const syncCount = document.getElementById('sync-past-count');
+  const syncBar = document.getElementById('sync-past-bar');
+
+  syncPastBtn.addEventListener('click', () => {
+    if (confirm('This will fetch all your accepted LeetCode submissions and sync them to GitHub. This may take a few minutes to respect rate limits. Continue?')) {
+      chrome.runtime.sendMessage({ action: 'SYNC_ALL_PAST' });
+      syncPastBtn.disabled = true;
+      syncProgressContainer.style.display = 'block';
+    }
+  });
+
+  function updateSyncProgress(prog) {
+    if (!prog) return;
+    
+    syncProgressContainer.style.display = 'block';
+    syncStatus.textContent = prog.status;
+    
+    if (prog.total > 0) {
+      syncCount.textContent = `${prog.current}/${prog.total}`;
+      syncBar.style.width = `${(prog.current / prog.total) * 100}%`;
+    } else {
+      syncCount.textContent = '';
+      syncBar.style.width = '0%';
+    }
+    
+    if (prog.status === 'Complete!' || prog.status.startsWith('Error')) {
+      syncPastBtn.disabled = false;
+      setTimeout(() => {
+        syncProgressContainer.style.display = 'none';
+        chrome.storage.local.remove('syncProgress');
+      }, 5000);
+    } else {
+      syncPastBtn.disabled = true;
+    }
+  }
+
+  chrome.storage.local.get(['syncProgress'], (res) => {
+    if (res.syncProgress) updateSyncProgress(res.syncProgress);
+  });
+
   // Listen for background updates
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.syncHistory || changes.failedQueue) {
       loadData();
+    }
+    if (changes.syncProgress) {
+      updateSyncProgress(changes.syncProgress.newValue);
     }
   });
 });
