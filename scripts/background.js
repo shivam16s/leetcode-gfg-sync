@@ -377,6 +377,8 @@ async function fetchAllAcceptedSubmissions() {
   let hasNext = true;
   
   while (hasNext) {
+    chrome.storage.local.set({ syncProgress: { current: 0, total: 0, status: `Fetching history from LeetCode... (Page ${offset/limit + 1})` }});
+    
     const res = await fetch(`https://leetcode.com/api/submissions/?offset=${offset}&limit=${limit}`, {
       credentials: 'include'
     });
