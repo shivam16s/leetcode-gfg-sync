@@ -207,6 +207,42 @@ function dismissToast() {
   }
 }
 
+// --- DOM Observer Fallback ---
+// If XHR interception misses, watch for "Problem Solved Successfully" in DOM
+
+let domObserverFired = false;
+let waitingForCode = false;
+
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        if (
+          (text.includes('Problem Solved Successfully') || text.includes('Correct Answer')) &&
+          !domObserverFired
+        ) {
+          domObserverFired = true;
+          setTimeout(() => { domObserverFired = false; }, 10000); // cooldown
+
+          waitingForCode = true;
+          window.postMessage({ type: 'REQUEST_CODE' }, '*');
+          
+          // Timeout if no response
+          setTimeout(() => {
+            if (waitingForCode) {
+              waitingForCode = false;
+              showToast('Sync failed: Could not extract code from DOM fallback', 'error');
+            }
+          }, 3000);
+        }
+      }
+    }
+  }
+});
+
+observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
 // --- Main Handler ---
 
 function handleAcceptedSubmission(submissionData) {
@@ -274,8 +310,21 @@ function handleAcceptedSubmission(submissionData) {
 // --- Listen for messages from gfg_inject.js ---
 
 window.addEventListener('message', (event) => {
-  if (event.source !== window || event.data.type !== 'GFG_SUBMISSION_ACCEPTED') {
-    return;
+  if (event.source !== window) return;
+
+  if (event.data.type === 'GFG_SUBMISSION_ACCEPTED') {
+    domObserverFired = true;
+    setTimeout(() => { domObserverFired = false; }, 10000);
+    handleAcceptedSubmission(event.data.data);
+  } else if (event.data.type === 'RESPONSE_CODE' && waitingForCode) {
+    waitingForCode = false;
+    handleAcceptedSubmission({
+      runtime: '',
+      memory: '',
+      status_msg: 'Problem Solved Successfully',
+      timestamp: new Date().toISOString(),
+      code: event.data.data.code,
+      language: event.data.data.language
+    });
   }
-  handleAcceptedSubmission(event.data.data);
 });

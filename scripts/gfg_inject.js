@@ -125,4 +125,36 @@
     this._reqBody = body;
     return originalXhrSend.apply(this, arguments);
   };
+
+  // Allow content script to manually request code (DOM Observer fallback)
+  window.addEventListener('message', (event) => {
+    if (event.source !== window || event.data.type !== 'REQUEST_CODE') return;
+    
+    let code = null;
+    let language = null;
+    
+    if (window.monaco && window.monaco.editor) {
+      try {
+        const models = window.monaco.editor.getModels ? window.monaco.editor.getModels() : [];
+        if (models.length > 0) {
+          code = models[0].getValue ? models[0].getValue() : code;
+          if (models[0].getLanguageId) language = models[0].getLanguageId();
+        }
+      } catch (e) {}
+    }
+    
+    if (!code) {
+      try {
+        const cmEl = document.querySelector('.CodeMirror');
+        if (cmEl && cmEl.CodeMirror) {
+          code = cmEl.CodeMirror.getValue();
+        }
+      } catch (e) {}
+    }
+    
+    window.postMessage({
+      type: 'RESPONSE_CODE',
+      data: { code, language }
+    }, '*');
+  });
 })();
