@@ -1,9 +1,9 @@
 # 🗺️ Task Tracker
 
 ## Phase 1: Foundation
-- [ ] Set up `manifest.json` (Manifest V3, permissions, content scripts)
-- [ ] Create extension icons (16, 48, 128px)
-- [ ] Set up project folder structure
+- [x] Set up `manifest.json` (Manifest V3, permissions, content scripts)
+- [x] Create extension icons (16, 48, 128px)
+- [x] Set up project folder structure
 
 ## Phase 2: LeetCode Submission Capture
 - [ ] Build `scripts/inject.js` — intercept fetch/XHR for submission check responses
