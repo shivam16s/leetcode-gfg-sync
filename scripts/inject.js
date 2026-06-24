@@ -2,8 +2,9 @@
   const PROCESSED_SUBMISSIONS = new Set(); // Deduplication logic
 
   function checkResponse(responseUrl, responseText) {
-    // We only care about LeetCode's check endpoint
-    if (!responseUrl.includes('/submissions/detail/') || !responseUrl.includes('/check/')) {
+    const urlStr = String(responseUrl);
+    // We only care about LeetCode's submission endpoints
+    if (!urlStr.includes('submission')) {
       return;
     }
 
@@ -11,11 +12,11 @@
       const data = JSON.parse(responseText);
       
       // Check if it's an Accepted submission
-      if (data.state === 'SUCCESS' && data.status_msg === 'Accepted') {
-        const submissionIdMatch = responseUrl.match(/\/submissions\/detail\/(\d+)\/check/);
-        if (!submissionIdMatch) return;
+      if ((data.state === 'SUCCESS' && data.status_msg === 'Accepted') || data.statusDisplay === 'Accepted') {
+        const submissionIdMatch = urlStr.match(/(\d+)/);
+        if (!submissionIdMatch && !data.submission_id) return;
         
-        const submissionId = submissionIdMatch[1];
+        const submissionId = data.submission_id || submissionIdMatch[0];
         
         // Prevent duplicate processing
         if (PROCESSED_SUBMISSIONS.has(submissionId)) return;
@@ -51,12 +52,12 @@
   const originalFetch = window.fetch;
   window.fetch = async function (...args) {
     const response = await originalFetch.apply(this, args);
-    const url = args[0] instanceof Request ? args[0].url : args[0];
+    const urlStr = String(args[0] instanceof Request ? args[0].url : args[0]);
     
-    if (typeof url === 'string' && url.includes('/submissions/detail/') && url.includes('/check/')) {
+    if (urlStr.includes('submission')) {
       // Clone response so we can read it without consuming the original stream
       const clone = response.clone();
-      clone.text().then(text => checkResponse(url, text)).catch(console.error);
+      clone.text().then(text => checkResponse(urlStr, text)).catch(console.error);
     }
     return response;
   };
@@ -64,9 +65,10 @@
   // Intercept XMLHttpRequest
   const originalXhrOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+    const urlStr = String(url);
     this.addEventListener('load', function () {
-      if (typeof url === 'string') {
-        checkResponse(url, this.responseText);
+      if (urlStr.includes('submission')) {
+        checkResponse(urlStr, this.responseText);
       }
     });
     return originalXhrOpen.call(this, method, url, ...rest);

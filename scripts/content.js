@@ -35,6 +35,11 @@ const SUBMISSION_DETAILS_QUERY = `
   }
 `;
 
+function getCsrfToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}
+
 async function fetchGraphQL(query, variables, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -42,7 +47,8 @@ async function fetchGraphQL(query, variables, retries = 3) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'x-csrftoken': getCsrfToken()
         },
         body: JSON.stringify({ query, variables })
       });
