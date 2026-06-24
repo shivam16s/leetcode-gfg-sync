@@ -288,6 +288,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: false, error: err.message });
       });
     return true; 
+  }
+  
   if (request.action === 'RETRY_FAILED') {
     processFailedQueue();
     sendResponse({ success: true });
