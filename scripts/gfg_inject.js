@@ -50,6 +50,29 @@
         } catch (e) {}
       }
 
+      // Main-world fallback: Monaco Editor
+      if (!code && window.monaco && window.monaco.editor) {
+        try {
+          const models = window.monaco.editor.getModels();
+          if (models.length > 0) {
+            code = models[0].getValue();
+            if (!language && models[0].getLanguageId) {
+              language = models[0].getLanguageId();
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Main-world fallback: CodeMirror
+      if (!code) {
+        try {
+          const cmEl = document.querySelector('.CodeMirror');
+          if (cmEl && cmEl.CodeMirror) {
+            code = cmEl.CodeMirror.getValue();
+          }
+        } catch (e) {}
+      }
+
       // Post message to the GFG content script
       window.postMessage({
         type: 'GFG_SUBMISSION_ACCEPTED',
